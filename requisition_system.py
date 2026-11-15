@@ -13,3 +13,17 @@ class RequisitionSystem:
         self.status = "Pending"
         self.approval_ref = "Not available"
         RequisitionSystem.all_requisitions.append(self)
+
+    def add_requisition(self, items_with_costs):
+        self.items = items_with_costs
+        self.total = sum(cost for _, cost in items_with_costs)
+        self.approve_requisition()
+        return self.total
+
+    def approve_requisition(self):
+        if self.total < 500:
+            self.status = "Approved"
+            self.approval_ref = f"{self.staff_id}{str(self.requisition_id)[-3:]}"
+        else:
+            self.status = "Pending"
+            self.approval_ref = "Not available"
