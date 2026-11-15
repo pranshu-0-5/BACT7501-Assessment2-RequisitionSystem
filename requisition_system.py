@@ -27,3 +27,72 @@ class RequisitionSystem:
         else:
             self.status = "Pending"
             self.approval_ref = "Not available"
+
+    def respond_requisition(self, decision):
+        if self.status == "Pending":
+            normalized = decision.strip().lower()
+            if normalized == "approved":
+                self.status = "Approved"
+                self.approval_ref = f"{self.staff_id}{str(self.requisition_id)[-3:]}"
+            elif normalized == "not approved":
+                self.status = "Not approved"
+                self.approval_ref = "Not available"
+            else:
+                print(f"Invalid decision '{decision}' for Requisition {self.requisition_id}.")
+
+    def display_details(self):
+        formatted_total = int(self.total) if self.total.is_integer() else f"{self.total:.2f}"
+        print(f"Date: {self.date}")
+        print(f"Requisition ID: {self.requisition_id}")
+        print(f"Staff ID: {self.staff_id}")
+        print(f"Staff Name: {self.staff_name}")
+        print(f"Total: ${formatted_total}")
+        print(f"Status: {self.status}")
+        print(f"Approval Reference Number: {self.approval_ref}\n")
+
+    @classmethod
+    def display_requisitions(cls):
+        for req in cls.all_requisitions:
+            req.display_details()
+
+    @classmethod
+    def requisition_statistics(cls):
+        total_submitted = len(cls.all_requisitions)
+        approved_count = sum(1 for r in cls.all_requisitions if r.status == "Approved")
+        pending_count = sum(1 for r in cls.all_requisitions if r.status == "Pending")
+        not_approved_count = sum(1 for r in cls.all_requisitions if r.status == "Not approved")
+
+        print("Statistics:")
+        print("Displaying the Requisition Statistics")
+        print(f"The total number of requisitions submitted: {total_submitted}")
+        print(f"The total number of approved requisitions: {approved_count}")
+        print(f"The total number of pending requisitions: {pending_count}")
+        print(f"The total number of not approved requisitions: {not_approved_count}\n")
+
+
+if __name__ == "__main__":
+    req1 = RequisitionSystem("03/04/2024", "FN19", "John Paul")
+    req1.add_requisition([("Office Chair", 250), ("Desk Lamp", 200)])
+
+    req2 = RequisitionSystem("05/04/2024", "FN20", "Tracy Brown")
+    req2.add_requisition([("Laptop", 1000)])
+
+    req3 = RequisitionSystem("07/05/2024", "FN15", "Emma Wellington")
+    req3.add_requisition([("Server Rack", 2500), ("UPS Battery", 1000)])
+
+    req4 = RequisitionSystem("03/05/2024", "FN02", "Catlin White")
+    req4.add_requisition([("Monitor Stand", 190), ("Keyboard", 300)])
+
+    req5 = RequisitionSystem("10/05/2024", "FN08", "Liam Patel")
+    req5.add_requisition([("Standing Desk", 650)])
+
+    print("--- INITIAL REQUISITIONS & STATISTICS ---")
+    RequisitionSystem.display_requisitions()
+    RequisitionSystem.requisition_statistics()
+
+    req3.respond_requisition("Not approved")
+    req5.respond_requisition("Approved")
+
+    print("--- UPDATED REQUISITIONS & STATISTICS AFTER MANAGER REVIEW ---")
+    RequisitionSystem.display_requisitions()
+    RequisitionSystem.requisition_statistics()
