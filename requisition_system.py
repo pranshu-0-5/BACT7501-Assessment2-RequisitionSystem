@@ -71,27 +71,37 @@ class RequisitionSystem:
 
 
 if __name__ == "__main__":
+    # --- Requisitions 1 to 7 ---
     req1 = RequisitionSystem("03/04/2024", "FN19", "John Paul")
-    req1.add_requisition([("Office Chair", 250), ("Desk Lamp", 200)])
+    req1.add_requisition([("Office Chair", 250), ("Desk Lamp", 200)])  # $450 -> Auto-Approved
 
     req2 = RequisitionSystem("05/04/2024", "FN20", "Tracy Brown")
-    req2.add_requisition([("Laptop", 1000)])
+    req2.add_requisition([("Laptop", 1000)])  # $1000 -> Pending
 
     req3 = RequisitionSystem("07/05/2024", "FN15", "Emma Wellington")
-    req3.add_requisition([("Server Rack", 2500), ("UPS Battery", 1000)])
+    req3.add_requisition([("Server Rack", 2500), ("UPS Battery", 1000)])  # $3500 -> Pending
 
     req4 = RequisitionSystem("03/05/2024", "FN02", "Catlin White")
-    req4.add_requisition([("Monitor Stand", 190), ("Keyboard", 300)])
+    req4.add_requisition([("Monitor Stand", 190), ("Keyboard", 300)])  # $490 -> Auto-Approved
 
     req5 = RequisitionSystem("10/05/2024", "FN08", "Liam Patel")
-    req5.add_requisition([("Standing Desk", 650)])
+    req5.add_requisition([("Standing Desk", 650)])  # $650 -> Pending
 
-    print("--- INITIAL REQUISITIONS & STATISTICS ---")
+    req6 = RequisitionSystem("12/05/2024", "FN22", "Sophia Chen")
+    req6.add_requisition([("Printer Toner", 150), ("A4 Paper Box", 80)])  # $230 -> Auto-Approved
+
+    req7 = RequisitionSystem("14/05/2024", "FN11", "Noah Williams")
+    req7.add_requisition([("External Monitor", 500)])  # $500 (Boundary case) -> Pending
+
+    print("--- INITIAL REQUISITIONS & STATISTICS (7 SUBMISSIONS) ---")
     RequisitionSystem.display_requisitions()
     RequisitionSystem.requisition_statistics()
 
+    # Manager reviews selected pending requisitions (total > $499)
+    # Leave req2 ($1000) as Pending
     req3.respond_requisition("Not approved")
     req5.respond_requisition("Approved")
+    req7.respond_requisition("Approved")
 
     print("--- UPDATED REQUISITIONS & STATISTICS AFTER MANAGER REVIEW ---")
     RequisitionSystem.display_requisitions()
