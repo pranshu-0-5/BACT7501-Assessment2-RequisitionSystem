@@ -34,11 +34,15 @@ class RequisitionSystem:
             if normalized == "approved":
                 self.status = "Approved"
                 self.approval_ref = f"{self.staff_id}{str(self.requisition_id)[-3:]}"
+                print(f"Requisition {self.requisition_id} has been Approved.")
             elif normalized == "not approved":
                 self.status = "Not approved"
                 self.approval_ref = "Not available"
+                print(f"Requisition {self.requisition_id} has been marked as Not approved.")
             else:
-                print(f"Invalid decision '{decision}' for Requisition {self.requisition_id}.")
+                print(f"Invalid decision '{decision}'. Please enter 'Approved' or 'Not approved'.")
+        else:
+            print(f"Requisition {self.requisition_id} is already '{self.status}' and does not require manager review.")
 
     def display_details(self):
         formatted_total = int(self.total) if self.total.is_integer() else f"{self.total:.2f}"
@@ -52,6 +56,10 @@ class RequisitionSystem:
 
     @classmethod
     def display_requisitions(cls):
+        if not cls.all_requisitions:
+            print("\nNo requisitions submitted yet.\n")
+            return
+        print("\n--- ALL REQUISITIONS ---")
         for req in cls.all_requisitions:
             req.display_details()
 
@@ -71,38 +79,79 @@ class RequisitionSystem:
 
 
 if __name__ == "__main__":
-    # --- Requisitions 1 to 7 ---
-    req1 = RequisitionSystem("03/04/2024", "FN19", "John Paul")
-    req1.add_requisition([("Office Chair", 250), ("Desk Lamp", 200)])  # $450 -> Auto-Approved
+    while True:
+        print("=== Requisition System Menu ===")
+        print("1. Submit a new requisition")
+        print("2. Manager review (Respond to a pending requisition)")
+        print("3. Display all requisitions")
+        print("4. Display requisition statistics")
+        print("5. Exit")
 
-    req2 = RequisitionSystem("05/04/2024", "FN20", "Tracy Brown")
-    req2.add_requisition([("Laptop", 1000)])  # $1000 -> Pending
+        choice = input("Enter your choice (1-5): ").strip()
 
-    req3 = RequisitionSystem("07/05/2024", "FN15", "Emma Wellington")
-    req3.add_requisition([("Server Rack", 2500), ("UPS Battery", 1000)])  # $3500 -> Pending
+        if choice == "1":
+            date = input("Enter Date (DD/MM/YYYY): ").strip()
+            staff_id = input("Enter Staff ID (e.g., FN19): ").strip()
+            staff_name = input("Enter Staff Name: ").strip()
 
-    req4 = RequisitionSystem("03/05/2024", "FN02", "Catlin White")
-    req4.add_requisition([("Monitor Stand", 190), ("Keyboard", 300)])  # $490 -> Auto-Approved
+            items_with_costs = []
+            while True:
+                item_name = input("Enter item name (or press Enter to finish adding items): ").strip()
+                if not item_name:
+                    if not items_with_costs:
+                        print("You must add at least one item.")
+                        continue
+                    break
 
-    req5 = RequisitionSystem("10/05/2024", "FN08", "Liam Patel")
-    req5.add_requisition([("Standing Desk", 650)])  # $650 -> Pending
+                while True:
+                    try:
+                        cost = float(input(f"Enter cost for '{item_name}': $").strip())
+                        if cost < 0:
+                            print("Cost cannot be negative. Try again.")
+                            continue
+                        items_with_costs.append((item_name, cost))
+                        break
+                    except ValueError:
+                        print("Invalid input. Please enter a numeric cost.")
 
-    req6 = RequisitionSystem("12/05/2024", "FN22", "Sophia Chen")
-    req6.add_requisition([("Printer Toner", 150), ("A4 Paper Box", 80)])  # $230 -> Auto-Approved
+            req = RequisitionSystem(date, staff_id, staff_name)
+            req.add_requisition(items_with_costs)
+            print(f"\nRequisition {req.requisition_id} submitted! Current Status: {req.status}\n")
 
-    req7 = RequisitionSystem("14/05/2024", "FN11", "Noah Williams")
-    req7.add_requisition([("External Monitor", 500)])  # $500 (Boundary case) -> Pending
+        elif choice == "2":
+            pending_reqs = [r for r in RequisitionSystem.all_requisitions if r.status == "Pending"]
+            if not pending_reqs:
+                print("\nThere are no pending requisitions to review.\n")
+                continue
 
-    print("--- INITIAL REQUISITIONS & STATISTICS (7 SUBMISSIONS) ---")
-    RequisitionSystem.display_requisitions()
-    RequisitionSystem.requisition_statistics()
+            print("\nPending Requisitions:")
+            for r in pending_reqs:
+                formatted_total = int(r.total) if r.total.is_integer() else f"{r.total:.2f}"
+                print(f" - ID: {r.requisition_id} | Staff: {r.staff_name} ({r.staff_id}) | Total: ${formatted_total}")
 
-    # Manager reviews selected pending requisitions (total > $499)
-    # Leave req2 ($1000) as Pending
-    req3.respond_requisition("Not approved")
-    req5.respond_requisition("Approved")
-    req7.respond_requisition("Approved")
+            try:
+                target_id = int(input("\nEnter the Requisition ID to review: ").strip())
+                matched_req = next((r for r in RequisitionSystem.all_requisitions if r.requisition_id == target_id), None)
 
-    print("--- UPDATED REQUISITIONS & STATISTICS AFTER MANAGER REVIEW ---")
-    RequisitionSystem.display_requisitions()
-    RequisitionSystem.requisition_statistics()
+                if matched_req:
+                    decision = input("Enter decision (Approved / Not approved): ").strip()
+                    matched_req.respond_requisition(decision)
+                    print()
+                else:
+                    print(f"Requisition ID {target_id} not found.\n")
+            except ValueError:
+                print("Invalid Requisition ID. Please enter a number.\n")
+
+        elif choice == "3":
+            RequisitionSystem.display_requisitions()
+
+        elif choice == "4":
+            print()
+            RequisitionSystem.requisition_statistics()
+
+        elif choice == "5":
+            print("Exiting Requisition System. Goodbye!")
+            break
+
+        else:
+            print("Invalid choice. Please select an option between 1 and 5.\n")
